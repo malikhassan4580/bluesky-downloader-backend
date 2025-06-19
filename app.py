@@ -5,7 +5,8 @@ import re
 from io import BytesIO
 
 app = Flask(__name__)
-CORS(app)  # Enable CORS for frontend access
+from flask_cors import CORS
+CORS(app)
 
 @app.route('/download', methods=['POST'])
 def download():
