@@ -5,7 +5,6 @@ import re
 from io import BytesIO
 
 app = Flask(__name__)
-from flask_cors import CORS
 CORS(app)
 
 @app.route('/download', methods=['POST'])
