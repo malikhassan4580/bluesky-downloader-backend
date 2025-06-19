@@ -1,9 +1,10 @@
 from flask import Flask, request, send_file, jsonify
+from flask_cors import CORS
 import requests
 import re
 from io import BytesIO
-
 app = Flask(__name__)
+CORS(app)
 
 @app.route('/download', methods=['POST'])
 def download():
