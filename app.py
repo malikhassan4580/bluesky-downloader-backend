@@ -28,29 +28,29 @@ def download():
         if not repo or not rkey:
             return jsonify({'error': 'Could not parse post URL'}), 400
 
-        # Fetch post metadata from Bluesky public API
+        # Fetch post metadata
         api_url = "https://public.api.bsky.app/xrpc/com.atproto.repo.getRecord"
         params = {
             "collection": "app.bsky.feed.post",
             "repo": repo,
             "rkey": rkey
         }
-
         response = requests.get(api_url, params=params, timeout=10)
         if response.status_code != 200:
             return jsonify({'error': 'Failed to fetch post metadata'}), 500
 
-        record = response.json().get('value', {})
-        embeds = record.get('embed', {}).get('images') or record.get('embed', {}).get('media', {}).get('images')
+        result = response.json()
+        did = result.get('uri', '').split('/')[2]  # Extract DID from URI
+        blob = result.get('value', {}).get('embed', {}).get('video', {}).get('ref', {}).get('$link')
 
-        if not embeds or not embeds[0].get('fullsize'): 
-            return jsonify({'error': 'No video found in the post'}), 404
+        if not did or not blob:
+            return jsonify({'error': 'No downloadable video found in the post.'}), 404
 
-        # Fetch the image/video content
-        video_url = embeds[0]['fullsize']
+        # Construct direct download URL
+        video_url = f"https://cdn.bsky.app/blob/{did}/{blob}"
         video_data = requests.get(video_url, stream=True, timeout=10)
         if video_data.status_code != 200:
-            return jsonify({'error': 'Failed to fetch video'}), 500
+            return jsonify({'error': 'Failed to fetch video content.'}), 500
 
         return send_file(BytesIO(video_data.content), mimetype='video/mp4', download_name='bluesky_video.mp4')
 
